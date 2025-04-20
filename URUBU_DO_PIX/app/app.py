@@ -1,8 +1,8 @@
-from flask import Flask, request
-from models.cliente import login
 import sys
-
 sys.dont_write_bytecode = True
+from flask import Flask, request
+from routes.cliente import login
+
 app = Flask(__name__)
 
 
