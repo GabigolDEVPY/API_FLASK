@@ -1,4 +1,4 @@
-from flask import jsonify, make_response, request
+from flask import jsonify, make_response, request, render_template
 import sys
 from db import get_connection
 
@@ -8,7 +8,7 @@ def login():
     print("qualquer coisa")
     if request.method == "GET":
         # deverá retornar o html crú
-        return jsonify("good work")
+        return render_template("login.html")
     
     elif request.method == "POST":
         return make_response(jsonify("Post method"))

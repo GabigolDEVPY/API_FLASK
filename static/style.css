@@ -1,0 +1,68 @@
+/* Fundo geral */
+body {
+  background: linear-gradient(to right, #fce4ec, #f8bbd0);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+/* Formulário bonitão */
+form {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0px 0px 20px rgba(255, 0, 128, 0.2);
+  width: 350px;
+}
+
+/* Títulos e labels */
+.form-label {
+  font-weight: bold;
+  color: #d81b60;
+}
+
+/* Inputs estilosos */
+.form-control {
+  border: 2px solid #f8bbd0;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #d81b60;
+  outline: none;
+  box-shadow: 0 0 5px rgba(216, 27, 96, 0.4);
+}
+
+/* Checkbox e texto */
+.form-check-input {
+  accent-color: #d81b60;
+}
+
+.form-text {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Botão brabíssimo */
+.btn-primary {
+  background-color: #d81b60;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  background-color: #ad1457;
+  cursor: pointer;
+}
