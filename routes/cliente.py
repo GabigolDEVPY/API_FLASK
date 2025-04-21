@@ -1,4 +1,4 @@
-from flask import jsonify, make_response, request, render_template, redirect, url_for
+from flask import jsonify, make_response, request, render_template, redirect, url_for, session
 import sys
 from db import get_connection
 
@@ -15,12 +15,17 @@ def login():
         cursor = conexao.cursor(dictionary=True)
         cursor.execute("SELECT nome, chave, saldo FROM usuarios WHERE email = %s AND senha = %s", (dados["email"], dados["password"]))
         usuario = cursor.fetchall()
+        print(usuario)
         conexao.close()
         cursor.close()
         if not usuario:
             return redirect(url_for("login_route"))
         
-        return render_template("home.html", nome=usuario[0]["nome"], chave_pix=usuario[0]["chave"], saldo=usuario[0]["saldo"])
+        session["nome"] = usuario[0]["nome"]
+        session["chave"] = usuario[0]["chave"]
+        session["saldo"] = usuario[0]["saldo"]
+        
+        return redirect(url_for("home_route"))
 
 def register():
     if request.method == "GET":
@@ -30,18 +35,75 @@ def register():
         dados = request.form.to_dict()
         conexao = get_connection()
         cursor = conexao.cursor()
-        cursor.execute("""
-    INSERT INTO usuarios (nome, senha, data_nascimento, email, chave, telefone, saldo)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-""", (
-    dados["nome"],
-    dados["senha"],
-    dados["data-nascimento"],
-    dados["email"],
-    dados["chave-pix"],
-    dados["telefone"],
-    "0"
-))
-        conexao.commit()
         
-        return render_template("login.html")
+        try:
+            cursor.execute("""
+        INSERT INTO usuarios (nome, senha, data_nascimento, email, chave, telefone, saldo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        dados["nome"],
+        dados["senha"],
+        dados["data-nascimento"],
+        dados["email"],
+        dados["chave-pix"],
+        dados["telefone"],
+        "0"
+    ))
+            conexao.commit()
+        except:
+            print("DEU ERRO")
+            if cursor.rowcount <1:
+                return render_template("register.html", erro="Erro ao cadastrar")
+            
+    return render_template("login.html")
+    
+    
+def home():
+    nome = session.get("nome")
+    chave = session.get("chave")
+    saldo = session.get("saldo")
+    
+    if not nome:
+        return redirect(url_for("login_route"))
+    
+    return render_template("home.html", nome=nome, chave_pix=chave, saldo=saldo)
+
+
+def verify_pix():
+    #______________________________________________ABRINDO CONEXÃO________________________________________________________________________________
+    conexao = get_connection()
+    cursor = conexao.cursor(dictionary=True)
+    #______________________________________________________________________________________________________________________________
+    user_name = session.get("nome")
+    dados_front = request.get_json()
+    print(dados_front)
+    chave = session.get("chave")
+    cursor.execute("SELECT saldo FROM usuarios WHERE nome = %s", (user_name,))
+    saldo_back = cursor.fetchall()
+    status = None
+    if int(saldo_back[0]["saldo"]) >= int(dados_front["valor"]):
+        status = "Possível"   
+    else:
+        status = "Saldo insuficiente para transação"
+        
+    if dados_front["chave_destino"] == chave:
+        return jsonify({
+        "nome_destinatario": "Não encontrado",
+        "chave_destino": "Chave não encontrada",
+        "valor": "1000",
+        "status": "impossível"
+    })
+    cursor.execute("SELECT nome, chave FROM usuarios WHERE chave = %s", ((dados_front["chave_destino"]),))
+    dados_recebedor = cursor.fetchone()
+    
+    if dados_recebedor:
+        return jsonify({
+            "nome_destinatario": dados_recebedor["nome"],
+            "chave_destino": dados_recebedor["chave"],
+            "valor": int(dados_front["valor"]),
+            "status": status
+        })
+        
+    
+def make_pix():
+    
