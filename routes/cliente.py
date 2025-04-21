@@ -81,29 +81,77 @@ def verify_pix():
     cursor.execute("SELECT saldo FROM usuarios WHERE nome = %s", (user_name,))
     saldo_back = cursor.fetchall()
     status = None
-    if int(saldo_back[0]["saldo"]) >= int(dados_front["valor"]):
+    if float(saldo_back[0]["saldo"]) >= float(dados_front["valor"]):
         status = "Possível"   
     else:
         status = "Saldo insuficiente para transação"
         
-    if dados_front["chave_destino"] == chave:
+    if dados_front["chave_pix"] == chave:
         return jsonify({
         "nome_destinatario": "Não encontrado",
         "chave_destino": "Chave não encontrada",
         "valor": "1000",
-        "status": "impossível"
+        "status": "Impossível"
     })
-    cursor.execute("SELECT nome, chave FROM usuarios WHERE chave = %s", ((dados_front["chave_destino"]),))
+    cursor.execute("SELECT nome, chave FROM usuarios WHERE chave = %s", ((dados_front["chave_pix"]),))
     dados_recebedor = cursor.fetchone()
     
     if dados_recebedor:
         return jsonify({
-            "nome_destinatario": dados_recebedor["nome"],
-            "chave_destino": dados_recebedor["chave"],
+            "nome_destino": dados_recebedor["nome"],
+            "chave_pix": dados_recebedor["chave"],
             "valor": int(dados_front["valor"]),
             "status": status
         })
         
     
 def make_pix():
+    #______________________________________________ABRINDO CONEXÃO________________________________________________________________________________
+    conexao = get_connection()
+    cursor = conexao.cursor(dictionary=True)
+    #______________________________________________________________________________________________________________________________
+    user_name = session.get("nome")
+    dados_front = request.get_json()
+    print(dados_front)
+    chave = session.get("chave")
+    cursor.execute("SELECT saldo, nome, email FROM usuarios WHERE nome = %s", (user_name,))
+    dados_back = cursor.fetchall()[0]
+
+    if float(dados_back["saldo"]) >= float(dados_front["valor"]):
+        
+        cursor.execute("SELECT nome, chave, saldo FROM usuarios WHERE chave = %s", ((dados_front["chave_pix"]),))
+        dados_recebedor = cursor.fetchall()[0]
+        
+        novo_saldo_remetente = float(dados_back["saldo"]) - float(dados_front["valor"])
+        novo_saldo_recebedor = float(dados_recebedor["saldo"]) + float(dados_front["valor"])
+        
+        cursor.execute("UPDATE usuarios SET saldo = %s WHERE nome = %s", (novo_saldo_remetente, user_name,))
+        cursor.execute("UPDATE usuarios SET saldo = %s WHERE nome = %s", (novo_saldo_recebedor, dados_recebedor["nome"],))
+        conexao.commit()
+
+
+
+        
+        
+    
+    
+    return jsonify({
+    "chave_pix": dados_recebedor["chave"],
+    "valor": float(dados_front["valor"]),
+    "nome_destino": dados_recebedor["nome"],
+    "nome_remetente": dados_back["nome"],
+    "email_remetente": dados_back["email"]
+})
+    
+    
+def user_return():
+    conexao = get_connection()
+    cursor = conexao.cursor(dictionary=True)
+    nome = session.get("nome")
+    cursor.execute("SELECT nome, chave, saldo FROM usuarios WHERE nome = %s", (nome,))
+    dados = cursor.fetchall()[0]
+    print(dados)
+    
+    return jsonify(dados)
+        
     

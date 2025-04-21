@@ -1,35 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <form action="/login" method="POST">
+    <div class="mb-3">
+      <label for="exampleInputEmail1" class="form-label">Endereço de Email</label>
+      <input type="email" class="form-control" id="exampleInputEmail1" name="email" aria-describedby="emailHelp" required>
+      <div id="emailHelp" class="form-text">Nunca compartilharemos seu email com terceiros.</div>
+    </div>
 
-<form action="/login" method="POST">
-  <div class="mb-3">
-    <label for="exampleInputEmail1" class="form-label">Email address</label>
-    <input type="email" class="form-control" id="exampleInputEmail1" name="email" aria-describedby="emailHelp" required>
-    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-  </div>
+    <div class="mb-3">
+      <label for="exampleInputPassword1" class="form-label">Senha</label>
+      <input type="password" class="form-control" id="exampleInputPassword1" name="password" required>
+    </div>
 
-  <div class="mb-3">
-    <label for="exampleInputPassword1" class="form-label">Password</label>
-    <input type="password" class="form-control" id="exampleInputPassword1" name="password" required>
-  </div>
+    <div class="mb-3 form-check">
+      <input type="checkbox" class="form-check-input" id="exampleCheck1" name="remember">
+      <label class="form-check-label" for="exampleCheck1">Lembrar-me</label>
+    </div>
 
-  <div class="mb-3 form-check">
-    <input type="checkbox" class="form-check-input" id="exampleCheck1">
-    <label class="form-check-label" for="exampleCheck1">Check me out</label>
-  </div>
-
-  <!-- Grupo de botões alinhados -->
-  <div class="button-group">
-    <button type="submit" class="btn btn-primary">Entrar</button>
-    <a href="/register" class="btn btn-primary">Registrar</a>
-  </div>
-</form>
-
+    <div class="button-group">
+      <button type="submit" class="btn btn-primary">Entrar</button>
+      <a href="/register" class="btn btn-primary">Registrar</a>
+    </div>
+  </form>
 </body>
 </html>

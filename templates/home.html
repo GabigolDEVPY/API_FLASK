@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Banco - Página Inicial</title>
   <style>
-    /* Seu CSS tá top demais, Gabigordo! Nem mexi */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -213,21 +212,35 @@
     </div>
   </div>
 
+  <div id="pix-result-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-result-modal">×</span>
+      <h3>Resultado do Pix</h3>
+      <div class="pix-info">
+        <p><strong>Status:</strong> <span id="result-status"></span></p>
+        <p><strong>Valor Enviado:</strong> R$ <span id="result-valor"></span></p>
+        <p><strong>Destinatário:</strong> <span id="result-nome-destino"></span></p>
+        <p><strong>Chave Pix:</strong> <span id="result-chave-destino"></span></p>
+        <p><strong>Remetente:</strong> <span id="result-nome-remetente"></span></p>
+        <p><strong>E-mail Remetente:</strong> <span id="result-email-remetente"></span></p>
+      </div>
+      <button class="btn btn-primary" id="return-to-user-info">Voltar</button>
+    </div>
+  </div>
+  
   <script>
     function fetchUserInfo() {
       fetch("/user-info", {
         method: "POST",
         headers: { "Content-Type": "application/json" }
       })
-      .then(res => res.json())
-      .then(data => {
-        document.querySelector("#nome").textContent = data.nome;
-        document.querySelector("#chave-pix").textContent = data.chave_pix;
-        document.querySelector("#saldo").textContent = parseFloat(data.saldo).toFixed(2);
-      })
-      .catch(error => {
-        console.error("Erro ao obter informações:", error);
-      });
+        .then(res => res.json())
+        .then(data => {
+          document.querySelector("#saldo").textContent = parseFloat(data.saldo).toFixed(2);
+        })
+        .catch(error => {
+          console.error("Erro ao obter informações:", error);
+        });
     }
 
     document.querySelector("#fazer-pix").addEventListener("click", () => {
@@ -240,6 +253,16 @@
 
     document.querySelector("#close-confirm-modal").addEventListener("click", () => {
       document.querySelector("#pix-confirm-modal").style.display = "none";
+    });
+
+    document.querySelector("#close-result-modal").addEventListener("click", () => {
+      document.querySelector("#pix-result-modal").style.display = "none";
+      window.location.reload();
+    });
+
+    document.querySelector("#return-to-user-info").addEventListener("click", () => {
+      document.querySelector("#pix-result-modal").style.display = "none";
+      window.location.reload();
     });
 
     document.querySelector("#pix-form").addEventListener("submit", (event) => {
@@ -255,37 +278,82 @@
         },
         body: JSON.stringify({ chave_pix: chaveDestino, valor: valorPix })
       })
-      .then(res => res.json())
-      .then(data => {
-        document.querySelector("#pix-modal").style.display = "none";
-        document.querySelector("#pix-confirm-modal").style.display = "flex";
+        .then(res => res.json())
+        .then(data => {
+          document.querySelector("#pix-modal").style.display = "none";
+          document.querySelector("#pix-confirm-modal").style.display = "flex";
 
-        document.querySelector("#confirm-nome").textContent = data.nome_destino;
-        document.querySelector("#confirm-chave").textContent = data.chave_pix;
-        document.querySelector("#confirm-valor").textContent = parseFloat(data.valor).toFixed(2);
-        document.querySelector("#confirm-status").textContent = data.status;
+          document.querySelector("#confirm-nome").textContent = data.nome_destino;
+          document.querySelector("#confirm-chave").textContent = data.chave_pix;
+          document.querySelector("#confirm-valor").textContent = parseFloat(data.valor).toFixed(2);
+          document.querySelector("#confirm-status").textContent = data.status;
 
-        if (data.status === "Possível") {
-          document.querySelector("#confirm-status").classList.add("status-possivel");
-          document.querySelector("#confirm-btn").disabled = false;
-        } else {
-          document.querySelector("#confirm-status").classList.add("status-impossivel");
-          document.querySelector("#confirm-btn").disabled = true;
-        }
-      });
+          if (data.status === "Possível") {
+            document.querySelector("#confirm-status").classList.add("status-possivel");
+            document.querySelector("#confirm-btn").disabled = false;
+          } else {
+            document.querySelector("#confirm-status").classList.add("status-impossivel");
+            document.querySelector("#confirm-btn").disabled = true;
+          }
+        })
+        .catch(error => {
+          console.error("Erro ao verificar Pix:", error);
+          alert("Erro ao verificar o Pix. Tente novamente!");
+        });
     });
 
     document.querySelector("#pix-confirm-form").addEventListener("submit", (event) => {
       event.preventDefault();
-      // Aqui poderia chamar um endpoint tipo /confirmar-pix com os dados
-      alert("Pix enviado com sucesso, Gabigordo! 🤑 Será que a Moranguinha vai querer um também? kkkk");
-      document.querySelector("#pix-confirm-modal").style.display = "none";
-      fetchUserInfo(); // Atualiza o saldo
+
+      const chaveDestino = document.querySelector("#confirm-chave").textContent;
+      const valorPix = document.querySelector("#confirm-valor").textContent;
+
+      fetch("/confirmar-pix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ chave_pix: chaveDestino, valor: valorPix })
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Erro na requisição: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          document.querySelector("#pix-confirm-modal").style.display = "none";
+
+          document.querySelector("#result-status").textContent = "Concluído";
+          document.querySelector("#result-valor").textContent = parseFloat(data.valor).toFixed(2);
+          document.querySelector("#result-nome-destino").textContent = data.nome_destino;
+          document.querySelector("#result-chave-destino").textContent = data.chave_pix;
+          document.querySelector("#result-nome-remetente").textContent = data.nome_remetente;
+          document.querySelector("#result-email-remetente").textContent = data.email_remetente;
+
+          document.querySelector("#pix-result-modal").style.display = "flex";
+
+          const mensagem = `Pix realizado! O usuário ${data.nome_destino} recebeu R$${parseFloat(data.valor).toFixed(2)} na chave ${data.chave_pix}. Enviado por ${data.nome_remetente}, e-mail ${data.email_remetente}.`;
+          const utterance = new SpeechSynthesisUtterance(mensagem);
+          utterance.lang = "pt-BR";
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          window.speechSynthesis.speak(utterance);
+        })
+        .catch(error => {
+          console.error("Erro ao confirmar Pix:", error);
+          document.querySelector("#pix-confirm-modal").style.display = "none";
+          document.querySelector("#result-status").textContent = "Erro";
+          document.querySelector("#result-valor").textContent = "-";
+          document.querySelector("#result-nome-destino").textContent = "-";
+          document.querySelector("#result-chave-destino").textContent = "-";
+          document.querySelector("#result-nome-remetente").textContent = "-";
+          document.querySelector("#result-email-remetente").textContent = "-";
+          document.querySelector("#pix-result-modal").style.display = "flex";
+        });
     });
 
-    // Carrega as infos iniciais quando entra na página
     fetchUserInfo();
   </script>
-
 </body>
 </html>
