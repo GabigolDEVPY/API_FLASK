@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banco - Página Inicial</title>
+</head>
+<body>
+
+  <!-- Cabeçalho do banco -->
+  <header>
+    <h1>Bem-vindo ao Urubu do PIX!</h1>
+    <p>Seu banco digital, feito especialmente pra você!</p>
+  </header>
+
+  <!-- Exibição das informações do usuário -->
+  <section id="user-info">
+    <h2>Informações da Conta</h2>
+    <p><strong>Nome:</strong> <span id="nome">{{ nome }}</span></p>
+    <p><strong>Chave Pix:</strong> <span id="chave-pix">{{ chave_pix }}</span></p>
+    <p><strong>Saldo:</strong> R$ <span id="saldo">{{ saldo }}</span></p>
+  </section>
+
+  <!-- Botão para fazer Pix -->
+  <section id="pix-section">
+    <button id="fazer-pix" class="btn btn-primary">Fazer Pix</button>
+  </section>
+
+  <!-- Modal para fazer o Pix -->
+  <div id="pix-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-modal">×</span>
+      <h3>Fazer Pix</h3>
+      <form id="pix-form">
+        <div class="form-group">
+          <label for="chave-destino">Chave Pix do Destinatário:</label>
+          <input type="text" id="chave-destino" name="chave-destino" required placeholder="Ex.: email, CPF, telefone">
+        </div>
+        <div class="form-group">
+          <label for="valor">Valor do Pix:</label>
+          <input type="number" id="valor" name="valor" min="0" step="0.01" required placeholder="R$ 0,00">
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar Pix</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Função para obter as informações do usuário do backend
+    function fetchUserInfo() {
+      fetch("/user-info", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Renderiza os dados no HTML
+        document.querySelector("#nome").textContent = data.nome;
+        document.querySelector("#chave-pix").textContent = data.chave_pix;
+        document.querySelector("#saldo").textContent = data.saldo.toFixed(2);
+      })
+      .catch(error => {
+        console.error("Erro ao obter informações:", error);
+      });
+    }
+
+    // Função para abrir o modal de Pix
+    document.querySelector("#fazer-pix").addEventListener("click", function() {
+      document.querySelector("#pix-modal").style.display = "flex";
+    });
+
+    // Função para fechar o modal de Pix
+    document.querySelector("#close-modal").addEventListener("click", function() {
+      document.querySelector("#pix-modal").style.display = "none";
+    });
+
+    // Envio do Pix
+    document.querySelector("#pix-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const chaveDestino = document.querySelector("#chave-destino").value;
+      const valorPix = document.querySelector("#valor").value;
+
+      // Enviar requisição de Pix
+      fetch("/fazer-pix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ chave_destino: chaveDestino, valor: valorPix })
+      })
+      .then(res => res.json())
+      .then(response => {
+        alert("Pix enviado com sucesso! 😎");
+        // Fecha o modal e resgata as informações atualizadas do usuário
+        document.querySelector("#pix-modal").style.display = "none";
+        fetchUserInfo();
+      })
+      .catch(error => {
+        console.error("Erro ao fazer Pix:", error);
+        alert("Erro ao enviar o Pix 😢");
+      });
+    });
+
+    // Carregar as informações do usuário quando a página carregar
+    window.onload = fetchUserInfo;
+  </script>
+
+  <style>
+    /* Estilo geral */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+
+    /* Cabeçalho */
+    header {
+      background-color:rgb(255, 39, 50);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+
+    header p {
+      margin: 5px 0 0;
+      font-size: 1.1em;
+    }
+
+    /* Seção de informações do usuário */
+    #user-info {
+      margin: 20px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+    }
+
+    #user-info h2 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    #user-info p {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    /* Seção do botão Pix */
+    #pix-section {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    /* Estilos do modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: #aaa;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #333;
+    }
+
+    .modal-content h3 {
+      margin: 0 0 20px;
+      color: #333;
+      text-align: center;
+    }
+
+    /* Estilos do formulário */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1em;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color:rgb(255, 0, 140);
+      outline: none;
+    }
+
+    /* Estilos do botão */
+    .btn {
+      padding: 12px 24px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color:rgb(255, 44, 96);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background-color:hsl(350, 100.00%, 62.00%);
+    }
+  </style>
+
+</body>
+</html>

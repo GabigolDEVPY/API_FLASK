@@ -66,3 +66,21 @@ form {
   background-color: #ad1457;
   cursor: pointer;
 }
+
+/* Grupo de botões alinhados */
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.button-group .btn-primary {
+  width: 48%;
+  margin-top: 0; /* remove a margin-top aqui pois o grupo já tem espaço */
+}
+
+/* Espaçamento entre os campos */
+.mb-3 {
+  margin-bottom: 15px;
+}
