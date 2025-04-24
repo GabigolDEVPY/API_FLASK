@@ -90,7 +90,7 @@ def verify_pix():
         return jsonify({
         "nome_destinatario": "Não encontrado",
         "chave_destino": "Chave não encontrada",
-        "valor": "1000",
+        "valor": "0",
         "status": "Impossível"
     })
     cursor.execute("SELECT nome, chave FROM usuarios WHERE chave = %s", ((dados_front["chave_pix"]),))
@@ -100,7 +100,7 @@ def verify_pix():
         return jsonify({
             "nome_destino": dados_recebedor["nome"],
             "chave_pix": dados_recebedor["chave"],
-            "valor": int(dados_front["valor"]),
+            "valor": float(dados_front["valor"]),
             "status": status
         })
         
